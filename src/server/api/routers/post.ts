@@ -7,7 +7,6 @@ import {
   privateProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
-import { prisma } from "~/server/db";
 
 const filterUser = (user: User) => {
   return {

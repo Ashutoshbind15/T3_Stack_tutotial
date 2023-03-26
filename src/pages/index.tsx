@@ -1,9 +1,14 @@
 import { useUser } from "@clerk/nextjs";
-import { type NextPage } from "next";
+import { GetStaticProps, type NextPage } from "next";
 import Head from "next/head";
 import { api, RouterOutputs } from "~/utils/api";
 import { useState } from "react";
 import Image from "next/image";
+import { toast } from "react-hot-toast";
+import { createProxySSGHelpers } from "@trpc/react-query/ssg";
+import { appRouter } from "~/server/api/root";
+import { prisma } from "~/server/db";
+import superjson from "superjson";
 
 const Home: NextPage = () => {
   const { data, isLoading } = api.posts.getAll.useQuery();
@@ -13,6 +18,11 @@ const Home: NextPage = () => {
     onSuccess: () => {
       setuserip("");
       void ctx.posts.getAll.invalidate();
+    },
+    onError: (e) => {
+      const errorMessages = e.data?.zodError?.fieldErrors.description;
+      if (errorMessages && errorMessages[0]) toast.error(errorMessages[0]);
+      else toast.error("Something went wrong");
     },
   });
   const ctx = api.useContext();
@@ -73,3 +83,19 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+export const getStaticProps: GetStaticProps = async () => {
+  const ssg = createProxySSGHelpers({
+    router: appRouter,
+    ctx: { prisma, userId: null },
+    transformer: superjson,
+  });
+
+  await ssg.posts.getAll.prefetch();
+
+  return {
+    props: {
+      trpcState: ssg.dehydrate(),
+    },
+  };
+};
