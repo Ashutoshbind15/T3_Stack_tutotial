@@ -7,9 +7,15 @@ import Image from "next/image";
 
 const Home: NextPage = () => {
   const { data, isLoading } = api.posts.getAll.useQuery();
-  const { mutate } = api.posts.create.useMutation();
   const { user } = useUser();
   const [userip, setuserip] = useState("");
+  const { mutate } = api.posts.create.useMutation({
+    onSuccess: () => {
+      setuserip("");
+      ctx.posts.getAll.invalidate();
+    },
+  });
+  const ctx = api.useContext();
 
   type PostWithUser = RouterOutputs["posts"]["getAll"][number];
 
