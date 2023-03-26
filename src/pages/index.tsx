@@ -7,8 +7,9 @@ import Image from "next/image";
 
 const Home: NextPage = () => {
   const { data, isLoading } = api.posts.getAll.useQuery();
+  const { mutate } = api.posts.create.useMutation();
   const { user } = useUser();
-  const [userip, setuserip] = useState<String>("");
+  const [userip, setuserip] = useState("");
 
   type PostWithUser = RouterOutputs["posts"]["getAll"][number];
 
@@ -17,7 +18,7 @@ const Home: NextPage = () => {
     return (
       <div className="flex items-center bg-blue-700 px-4 py-2 text-white">
         <Image
-          src={author?.profileImageUrl!}
+          src={author?.profileImageUrl as string}
           alt={"profile"}
           className="mr-3 rounded-full"
           width={24}
@@ -48,9 +49,17 @@ const Home: NextPage = () => {
             placeholder="type something"
             onChange={(e) => setuserip(e.target.value)}
             type="text"
-            value={userip as string}
+            value={userip}
           />
-          <button onClick={() => console.log(userip)}>Post</button>
+          <button
+            onClick={() => {
+              mutate({
+                description: userip,
+              });
+            }}
+          >
+            Post
+          </button>
         </div>
       )}
     </>
