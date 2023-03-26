@@ -12,7 +12,7 @@ const Home: NextPage = () => {
   const { mutate } = api.posts.create.useMutation({
     onSuccess: () => {
       setuserip("");
-      ctx.posts.getAll.invalidate();
+      void ctx.posts.getAll.invalidate();
     },
   });
   const ctx = api.useContext();
