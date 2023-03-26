@@ -1,9 +1,34 @@
+import { useUser } from "@clerk/nextjs";
 import { type NextPage } from "next";
 import Head from "next/head";
-import { api } from "~/utils/api";
+import { api, RouterOutputs } from "~/utils/api";
+import { useState } from "react";
+import Image from "next/image";
 
 const Home: NextPage = () => {
-  const { data } = api.example.getAll.useQuery();
+  const { data, isLoading } = api.posts.getAll.useQuery();
+  const { user } = useUser();
+  const [userip, setuserip] = useState<String>("");
+
+  type PostWithUser = RouterOutputs["posts"]["getAll"][number];
+
+  const PostView = (props: PostWithUser) => {
+    const { post, author } = props;
+    return (
+      <div className="flex items-center bg-blue-700 px-4 py-2 text-white">
+        <Image
+          src={author?.profileImageUrl!}
+          alt={"profile"}
+          className="mr-3 rounded-full"
+          width={24}
+          height={24}
+        />
+        <div>
+          {post.description} - {author?.username}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -14,9 +39,20 @@ const Home: NextPage = () => {
       </Head>
 
       <h1 className="">T3 demo</h1>
-      {data?.map((el) => (
-        <div key={el.id}>{el.description}</div>
-      ))}
+      {!isLoading && data?.map((el) => <PostView {...el} key={el.post.id} />)}
+      {!!isLoading && <p>Loading</p>}
+
+      {user && (
+        <div>
+          <input
+            placeholder="type something"
+            onChange={(e) => setuserip(e.target.value)}
+            type="text"
+            value={userip as string}
+          />
+          <button onClick={() => console.log(userip)}>Post</button>
+        </div>
+      )}
     </>
   );
 };
